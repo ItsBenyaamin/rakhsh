@@ -16,8 +16,17 @@ This library only download files to `Context.filesDir`.
 
 You can specify path when enqueue an item for download but you should implement storing downloaded files in outside of app storage path yourself.
 
+## Adding to your app
+Add this line to your `repositories` block on setting.gradle:
+```
+maven { url 'https://jitpack.io' }
+```
+Then add this line to your build.gradle:
+```
+implementation 'com.github.ItsBenyaamin:rakhsh:v1.0'
+```
 
-## Usage
+# Usage
 It's very simple
 ```
 // for default settings
