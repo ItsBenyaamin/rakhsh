@@ -3,7 +3,7 @@ package com.benyaamin.rakhsh.app.list
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.benyaamin.rakhsh.DownloadStatus
+import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.Rakhsh
 import com.benyaamin.rakhsh.RakhshDownloadManager
 import com.benyaamin.rakhsh.model.Download

@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.benyaamin.rakhsh.DownloadStatus
+import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.app.R
 import com.benyaamin.rakhsh.app.ui.components.CustomIconButton
 import com.benyaamin.rakhsh.model.Download

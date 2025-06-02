@@ -1,6 +1,6 @@
 package com.benyaamin.rakhsh.app.list
 
-import com.benyaamin.rakhsh.DownloadStatus
+import com.benyaamin.rakhsh.model.DownloadStatus
 
 sealed class ListActions {
     data class EnqueueNewDownload(val url: String) : ListActions()
