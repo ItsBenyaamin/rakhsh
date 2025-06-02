@@ -1,4 +1,4 @@
-package com.benyaamin.rakhsh
+package com.benyaamin.rakhsh.core
 
 import java.util.BitSet
 

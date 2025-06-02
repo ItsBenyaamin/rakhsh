@@ -5,6 +5,8 @@ import android.os.Handler
 import android.os.Looper
 import androidx.room.Room
 import com.benyaamin.rakhsh.client.RakhshClient
+import com.benyaamin.rakhsh.core.DownloadStateInterface
+import com.benyaamin.rakhsh.core.RakhshDownloader
 import com.benyaamin.rakhsh.db.RakhshDatabase
 import com.benyaamin.rakhsh.db.entity.DownloadMetadataEntity
 import com.benyaamin.rakhsh.model.Download

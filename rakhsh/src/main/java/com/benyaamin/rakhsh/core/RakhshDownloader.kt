@@ -1,4 +1,4 @@
-package com.benyaamin.rakhsh
+package com.benyaamin.rakhsh.core
 
 import android.os.Handler
 import com.benyaamin.rakhsh.client.RakhshClient
