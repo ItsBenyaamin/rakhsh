@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "506ab04c4f59b469fc702f433c158305",
+    "identityHash": "04596700ee33f962652115d4a5d12450",
     "entities": [
       {
         "tableName": "DownloadEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `url` TEXT NOT NULL, `path` TEXT NOT NULL, `fileName` TEXT NOT NULL, `tag` TEXT, `canResume` INTEGER NOT NULL, `totalBytes` INTEGER NOT NULL, `ranges` BLOB, `status` TEXT NOT NULL, `error` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `url` TEXT NOT NULL, `path` TEXT NOT NULL, `fileName` TEXT NOT NULL, `tag` TEXT, `status` TEXT NOT NULL, `error` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -38,6 +38,35 @@
             "affinity": "TEXT"
           },
           {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "error",
+            "columnName": "error",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "DownloadMetadataEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`itemId` INTEGER NOT NULL, `canResume` INTEGER NOT NULL, `totalBytes` INTEGER NOT NULL, `totalRead` INTEGER NOT NULL, `ranges` BLOB, PRIMARY KEY(`itemId`), FOREIGN KEY(`itemId`) REFERENCES `DownloadEntity`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "itemId",
+            "columnName": "itemId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "canResume",
             "columnName": "canResume",
             "affinity": "INTEGER",
@@ -50,34 +79,41 @@
             "notNull": true
           },
           {
+            "fieldPath": "totalRead",
+            "columnName": "totalRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "ranges",
             "columnName": "ranges",
             "affinity": "BLOB"
-          },
-          {
-            "fieldPath": "status",
-            "columnName": "status",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "error",
-            "columnName": "error",
-            "affinity": "TEXT",
-            "notNull": true
           }
         ],
         "primaryKey": {
-          "autoGenerate": true,
+          "autoGenerate": false,
           "columnNames": [
-            "id"
+            "itemId"
           ]
-        }
+        },
+        "foreignKeys": [
+          {
+            "table": "DownloadEntity",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "itemId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '506ab04c4f59b469fc702f433c158305')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '04596700ee33f962652115d4a5d12450')"
     ]
   }
 }

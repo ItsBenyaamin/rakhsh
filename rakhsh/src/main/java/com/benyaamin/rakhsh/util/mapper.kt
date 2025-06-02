@@ -7,9 +7,12 @@ import com.benyaamin.rakhsh.db.entity.DownloadEntity
 import com.benyaamin.rakhsh.db.projection.SimpleDownloadEntity
 import com.benyaamin.rakhsh.model.Download
 import com.benyaamin.rakhsh.model.DownloadProgress
+import com.benyaamin.rakhsh.model.ErrorType
 import kotlinx.coroutines.flow.Flow
 
 fun FullDownloadItem.toDownloadItem(): DownloadItem {
+    val error = if (downloadEntity.error == null) null
+    else ErrorType.valueOf(downloadEntity.error)
     return DownloadItem(
         id = downloadEntity.id,
         url = downloadEntity.url,
@@ -21,11 +24,13 @@ fun FullDownloadItem.toDownloadItem(): DownloadItem {
         totalRead = metadata.totalRead,
         ranges = metadata.ranges,
         status = DownloadStatus.valueOf(downloadEntity.status),
-        error = downloadEntity.error
+        error = error
     )
 }
 
 fun SimpleDownloadEntity.toDownload(progressFlow: Flow<DownloadProgress>): Download {
+    val error = if (error == null) null
+    else ErrorType.valueOf(error)
     return Download(
         id = id,
         fileName = fileName,
@@ -43,6 +48,6 @@ fun DownloadItem.toEntity(): DownloadEntity {
         fileName = fileName,
         tag = tag,
         status = DownloadStatus.NotStarted.name,
-        error = null
+        error = null,
     )
 }

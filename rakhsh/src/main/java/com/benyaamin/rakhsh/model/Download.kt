@@ -6,6 +6,6 @@ data class Download(
     val id: Int,
     val fileName: String,
     val status: DownloadStatus,
-    val error: String?,
+    val error: ErrorType?,
     val progressFlow: Flow<DownloadProgress>
 )

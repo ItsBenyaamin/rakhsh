@@ -13,6 +13,7 @@ import com.benyaamin.rakhsh.model.Download
 import com.benyaamin.rakhsh.model.DownloadItem
 import com.benyaamin.rakhsh.model.DownloadProgress
 import com.benyaamin.rakhsh.model.DownloadStatus
+import com.benyaamin.rakhsh.model.ErrorType
 import com.benyaamin.rakhsh.model.shouldRemoveFromOngoing
 import com.benyaamin.rakhsh.util.Logger
 import com.benyaamin.rakhsh.util.createDownloadItem
@@ -107,9 +108,9 @@ class RakhshDownloadManager(
 
     /**
      * create download request with given info and return created `id`.
-     * `url:` full url of file you want to download.
-     * `path:` You can pass a folder as path, in this case, the fileName from url will used. if you don't pass path, Context.filesDir will use as folder.
-     * `tag:` With setting tag, you can use it instead of download id.
+     * @param url full url of file you want to download.
+     * @param path You can pass a folder as path, in this case, the fileName from url will used. if you don't pass path, Context.filesDir will use as folder.
+     * @param tag With setting tag, you can use it instead of download id.
      */
     suspend fun enqueue(url: String, path: String? = null, tag: String? = null): Int {
         var tempPath = ""
@@ -358,13 +359,9 @@ class RakhshDownloadManager(
         }
     }
 
-    override fun onStatusChanged(
-        downloadId: Int,
-        stataus: DownloadStatus,
-        message: String?
-    ) {
+    override fun onStatusChanged(downloadId: Int, stataus: DownloadStatus, error: ErrorType?) {
         if (stataus == DownloadStatus.Error) {
-            logger.error("Download - id: $downloadId, status: ${stataus.name}, message: $message")
+            logger.error("Download - id: $downloadId, status: ${stataus.name}, error: ${error?.name}, cause: ${error?.error}")
         } else {
             logger.info("Download - id: $downloadId, status: ${stataus.name}")
         }
@@ -377,7 +374,7 @@ class RakhshDownloadManager(
             database.downloadDao().updateDownloadState(
                 downloadId = downloadId,
                 stataus.name,
-                message
+                error?.name,
             )
         }
     }

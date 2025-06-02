@@ -1,7 +1,6 @@
 package com.benyaamin.rakhsh.client
 
 import com.benyaamin.rakhsh.model.HeadResult
-import com.benyaamin.rakhsh.model.HeadResultSuccess
 import java.io.InputStream
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
@@ -13,8 +12,8 @@ class HttpsUrlConnectionClient : RakhshClient {
             connection.requestMethod = "HEAD"
             connection.connect()
 
-            val responseCode = connection.responseCode
-            if (responseCode in 200..299) {
+            val statusCode = connection.responseCode
+            if (statusCode in 200..299) {
                 val acceptRanges = connection.getHeaderField("Accept-Ranges")
                 println("Accept-Ranges: $acceptRanges")
 
@@ -24,26 +23,25 @@ class HttpsUrlConnectionClient : RakhshClient {
                     else -> false
                 }
 
-
                 val length = connection.contentLengthLong
 
-                val success = HeadResultSuccess(
+                val success = HeadResult.Success(
                     length,
                     doesAcceptRanges
                 )
-                return HeadResult(success = success, error = null)
+                connection.disconnect()
+                return success
             } else {
-                return HeadResult(success = null, error = "failed to get download info")
+                connection.disconnect()
+                return HeadResult.HttpError(statusCode)
             }
-
-            connection.disconnect()
         }catch (e: Exception) {
             e.printStackTrace()
-            return HeadResult(success = null, error = "failed to get download info")
+            return HeadResult.Failure(e)
         }
     }
 
-    override fun createInputStream(url: URL, range: LongRange?, readBlock: (InputStream) -> Unit, onError: (Throwable) -> Unit) {
+    override fun createInputStream(url: URL, range: LongRange?, readBlock: (InputStream) -> Unit, onError: (Exception) -> Unit) {
         try {
             val connection = url.openConnection() as HttpsURLConnection
             connection.requestMethod = "GET"
@@ -54,6 +52,7 @@ class HttpsUrlConnectionClient : RakhshClient {
             val inputStream = connection.getInputStream()
             readBlock(inputStream)
             inputStream.close()
+            connection.disconnect()
         }catch (e: Exception) {
             e.printStackTrace()
             onError(e)

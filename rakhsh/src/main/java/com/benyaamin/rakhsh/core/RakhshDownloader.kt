@@ -5,8 +5,11 @@ import com.benyaamin.rakhsh.client.RakhshClient
 import com.benyaamin.rakhsh.model.ChunkDownloadResult
 import com.benyaamin.rakhsh.model.DownloadItem
 import com.benyaamin.rakhsh.model.DownloadStatus
+import com.benyaamin.rakhsh.model.ErrorType
+import com.benyaamin.rakhsh.model.HeadResult
 import com.benyaamin.rakhsh.util.Logger
 import com.benyaamin.rakhsh.util.calculatePercentage
+import com.benyaamin.rakhsh.util.mapToErrorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -85,24 +88,30 @@ class RakhshDownloader(
     fun resume() {
         logger.debug { "resuming the download" }
         isPaused = false
+
         logger.debug { "update status to downloading" }
         updateItemStatus(DownloadStatus.Downloading)
+
         logger.debug { "init queue" }
         if (queue == null) queue = ChunkQueue(item.totalBytes, chunkSize, item.ranges)
+
         logger.debug { "calculate range" }
         queue?.calculateRanges()
+
         val percentage = calculatePercentage(item.totalRead, item.totalBytes)
         logger.debug { "Last progress: $percentage" }
         lastPercentage.set(percentage)
+
         logger.debug { "dispatch last progress" }
         listener.onProgressChanged(item.id, item.tag, item.totalBytes, item.totalRead, percentage)
+
         logger.debug { "start download" }
         startDownload(item.canResume, item.totalBytes)
     }
 
-    private fun updateItemStatus(status: DownloadStatus, message: String? = null) {
+    private fun updateItemStatus(status: DownloadStatus, error: ErrorType? = null) {
         mainHandler.post {
-            listener.onStatusChanged(item.id, status, message)
+            listener.onStatusChanged(item.id, status, error)
         }
         synchronized(itemLock) {
             item = item.copy(status = status)
@@ -111,34 +120,40 @@ class RakhshDownloader(
 
     private fun checkAcceptRanges(shouldStartDownload: Boolean) {
         pool.execute {
-            val result = client.headRequest(url)
-
-            if (result.success != null) {
-                item = item.copy(
-                    totalBytes = result.success.totalBytes,
-                    canResume = result.success.canResume
-                )
-
-                mainHandler.post {
-                    listener.onUpdateInfo(
-                        item.id,
-                        totalBytes = result.success.totalBytes,
-                        canResume = result.success.canResume
+            when(val result = client.headRequest(url)) {
+                is HeadResult.Success -> {
+                    item = item.copy(
+                        totalBytes = result.totalBytes,
+                        canResume = result.canResume
                     )
-                }
 
-                if (result.success.canResume) {
-                    queue = ChunkQueue(result.success.totalBytes, chunkSize, item.ranges)
-                    queue!!.calculateRanges()
-                }
-
-                if (shouldStartDownload) {
                     mainHandler.post {
-                        startDownload(result.success.canResume, result.success.totalBytes)
+                        listener.onUpdateInfo(
+                            item.id,
+                            totalBytes = result.totalBytes,
+                            canResume = result.canResume
+                        )
+                    }
+
+                    if (result.canResume) {
+                        queue = ChunkQueue(result.totalBytes, chunkSize, item.ranges)
+                        queue!!.calculateRanges()
+                    }
+
+                    if (shouldStartDownload) {
+                        mainHandler.post {
+                            startDownload(result.canResume, result.totalBytes)
+                        }
                     }
                 }
-            }else {
-                updateItemStatus(DownloadStatus.Error, "Failed to get download info")
+
+                is HeadResult.HttpError -> {
+                    updateItemStatus(DownloadStatus.Error, result.statusCode.mapToErrorType())
+                }
+
+                is HeadResult.Failure -> {
+                    updateItemStatus(DownloadStatus.Error, result.exception.mapToErrorType())
+                }
             }
         }
     }
@@ -193,7 +208,7 @@ class RakhshDownloader(
                     updateItemStatus(DownloadStatus.Completed)
                 },
                 onError = { msg ->
-                    updateItemStatus(DownloadStatus.Error, msg.message ?: "failed to download.")
+                    updateItemStatus(DownloadStatus.Error, msg.mapToErrorType())
                 }
             )
         }
@@ -261,7 +276,7 @@ class RakhshDownloader(
                         "Download failed"
                     }
                     mainHandler.post {
-                        updateItemStatus(DownloadStatus.Error, "Download Failed.")
+                        updateItemStatus(DownloadStatus.Error, failedChunks.first().error?.mapToErrorType())
                     }
                 } else {
                     logger.info("There is some failed chunks, downloading them again...")
