@@ -107,9 +107,9 @@ class RakhshDownloadManager(
 
     /**
      * create download request with given info and return created `id`.
-     * `url:` full url of file you want to download.
-     * `path:` You can pass a folder as path, in this case, the fileName from url will used. if you don't pass path, Context.filesDir will use as folder.
-     * `tag:` With setting tag, you can use it instead of download id.
+     * @param url full url of file you want to download.
+     * @param path You can pass a folder as path, in this case, the fileName from url will used. if you don't pass path, Context.filesDir will use as folder.
+     * @param tag With setting tag, you can use it instead of download id.
      */
     suspend fun enqueue(url: String, path: String? = null, tag: String? = null): Int {
         var tempPath = ""
