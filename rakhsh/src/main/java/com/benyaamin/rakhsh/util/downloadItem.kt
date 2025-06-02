@@ -1,6 +1,6 @@
 package com.benyaamin.rakhsh.util
 
-import com.benyaamin.rakhsh.DownloadStatus
+import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.model.DownloadItem
 
 fun createDownloadItem(url: String, path: String, fileName: String, tag: String?): DownloadItem {

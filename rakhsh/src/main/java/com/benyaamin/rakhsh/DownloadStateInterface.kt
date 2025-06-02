@@ -1,5 +1,6 @@
 package com.benyaamin.rakhsh
 
+import com.benyaamin.rakhsh.model.DownloadStatus
 import java.util.BitSet
 
 interface DownloadStateInterface {

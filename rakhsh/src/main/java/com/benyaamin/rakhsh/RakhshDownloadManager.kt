@@ -10,6 +10,8 @@ import com.benyaamin.rakhsh.db.entity.DownloadMetadataEntity
 import com.benyaamin.rakhsh.model.Download
 import com.benyaamin.rakhsh.model.DownloadItem
 import com.benyaamin.rakhsh.model.DownloadProgress
+import com.benyaamin.rakhsh.model.DownloadStatus
+import com.benyaamin.rakhsh.model.shouldRemoveFromOngoing
 import com.benyaamin.rakhsh.util.Logger
 import com.benyaamin.rakhsh.util.createDownloadItem
 import com.benyaamin.rakhsh.util.getFilenameFromUrl

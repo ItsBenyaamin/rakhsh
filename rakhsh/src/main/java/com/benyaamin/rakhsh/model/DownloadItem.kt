@@ -1,6 +1,5 @@
 package com.benyaamin.rakhsh.model
 
-import com.benyaamin.rakhsh.DownloadStatus
 import java.util.BitSet
 
 data class DownloadItem(

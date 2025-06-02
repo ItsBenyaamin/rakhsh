@@ -1,6 +1,6 @@
 package com.benyaamin.rakhsh.util
 
-import com.benyaamin.rakhsh.DownloadStatus
+import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.db.FullDownloadItem
 import com.benyaamin.rakhsh.model.DownloadItem
 import com.benyaamin.rakhsh.db.entity.DownloadEntity

@@ -1,4 +1,4 @@
-package com.benyaamin.rakhsh
+package com.benyaamin.rakhsh.model
 
 enum class DownloadStatus {
     NotStarted,

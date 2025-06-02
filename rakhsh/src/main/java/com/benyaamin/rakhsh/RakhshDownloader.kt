@@ -4,6 +4,7 @@ import android.os.Handler
 import com.benyaamin.rakhsh.client.RakhshClient
 import com.benyaamin.rakhsh.model.ChunkDownloadResult
 import com.benyaamin.rakhsh.model.DownloadItem
+import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.util.Logger
 import com.benyaamin.rakhsh.util.calculatePercentage
 import kotlinx.coroutines.CoroutineScope

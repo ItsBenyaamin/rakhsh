@@ -1,6 +1,5 @@
 package com.benyaamin.rakhsh.model
 
-import com.benyaamin.rakhsh.DownloadStatus
 import kotlinx.coroutines.flow.Flow
 
 data class Download(
