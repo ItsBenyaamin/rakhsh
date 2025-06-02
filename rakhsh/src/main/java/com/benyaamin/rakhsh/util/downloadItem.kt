@@ -15,6 +15,6 @@ fun createDownloadItem(url: String, path: String, fileName: String, tag: String?
         totalRead = 0,
         ranges = null,
         status = DownloadStatus.NotStarted,
-        error = "",
+        error = null,
     )
 }

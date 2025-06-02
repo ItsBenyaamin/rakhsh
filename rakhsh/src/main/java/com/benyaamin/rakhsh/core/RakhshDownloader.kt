@@ -5,6 +5,7 @@ import com.benyaamin.rakhsh.client.RakhshClient
 import com.benyaamin.rakhsh.model.ChunkDownloadResult
 import com.benyaamin.rakhsh.model.DownloadItem
 import com.benyaamin.rakhsh.model.DownloadStatus
+import com.benyaamin.rakhsh.model.ErrorType
 import com.benyaamin.rakhsh.model.HeadResult
 import com.benyaamin.rakhsh.util.Logger
 import com.benyaamin.rakhsh.util.calculatePercentage
@@ -87,24 +88,30 @@ class RakhshDownloader(
     fun resume() {
         logger.debug { "resuming the download" }
         isPaused = false
+
         logger.debug { "update status to downloading" }
         updateItemStatus(DownloadStatus.Downloading)
+
         logger.debug { "init queue" }
         if (queue == null) queue = ChunkQueue(item.totalBytes, chunkSize, item.ranges)
+
         logger.debug { "calculate range" }
         queue?.calculateRanges()
+
         val percentage = calculatePercentage(item.totalRead, item.totalBytes)
         logger.debug { "Last progress: $percentage" }
         lastPercentage.set(percentage)
+
         logger.debug { "dispatch last progress" }
         listener.onProgressChanged(item.id, item.tag, item.totalBytes, item.totalRead, percentage)
+
         logger.debug { "start download" }
         startDownload(item.canResume, item.totalBytes)
     }
 
-    private fun updateItemStatus(status: DownloadStatus, message: String? = null) {
+    private fun updateItemStatus(status: DownloadStatus, error: ErrorType? = null) {
         mainHandler.post {
-            listener.onStatusChanged(item.id, status, message)
+            listener.onStatusChanged(item.id, status, error)
         }
         synchronized(itemLock) {
             item = item.copy(status = status)

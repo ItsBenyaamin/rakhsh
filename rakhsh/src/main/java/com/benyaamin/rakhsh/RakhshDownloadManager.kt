@@ -13,6 +13,7 @@ import com.benyaamin.rakhsh.model.Download
 import com.benyaamin.rakhsh.model.DownloadItem
 import com.benyaamin.rakhsh.model.DownloadProgress
 import com.benyaamin.rakhsh.model.DownloadStatus
+import com.benyaamin.rakhsh.model.ErrorType
 import com.benyaamin.rakhsh.model.shouldRemoveFromOngoing
 import com.benyaamin.rakhsh.util.Logger
 import com.benyaamin.rakhsh.util.createDownloadItem
@@ -358,13 +359,9 @@ class RakhshDownloadManager(
         }
     }
 
-    override fun onStatusChanged(
-        downloadId: Int,
-        stataus: DownloadStatus,
-        message: String?
-    ) {
+    override fun onStatusChanged(downloadId: Int, stataus: DownloadStatus, error: ErrorType?) {
         if (stataus == DownloadStatus.Error) {
-            logger.error("Download - id: $downloadId, status: ${stataus.name}, message: $message")
+            logger.error("Download - id: $downloadId, status: ${stataus.name}, error: ${error?.name}, cause: ${error?.error}")
         } else {
             logger.info("Download - id: $downloadId, status: ${stataus.name}")
         }
@@ -377,7 +374,7 @@ class RakhshDownloadManager(
             database.downloadDao().updateDownloadState(
                 downloadId = downloadId,
                 stataus.name,
-                message
+                error?.name,
             )
         }
     }

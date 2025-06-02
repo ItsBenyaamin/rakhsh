@@ -13,11 +13,11 @@ data class DownloadItem(
     val totalRead: Long,
     val ranges: BitSet?,
     val status: DownloadStatus,
-    val error: String?,
+    val error: ErrorType?,
 ) {
 
     override fun toString(): String {
-        return "Id: $id, Url: $url, Path: $path, FileName:$fileName, Tag: $tag, TotalBytes: $totalBytes, totalRead: $totalRead, CanResume: $canResume, Status: ${status.name}, Error: $error"
+        return "Id: $id, Url: $url, Path: $path, FileName:$fileName, Tag: $tag, TotalBytes: $totalBytes, totalRead: $totalRead, CanResume: $canResume, Status: ${status.name}, Error: ${error?.name}"
     }
 
 }
