@@ -18,17 +18,17 @@ You can specify path when enqueue an item for download but you should implement 
 
 ## Adding to your app
 Add this line to your `repositories` block on setting.gradle:
-```
-maven { url 'https://jitpack.io' }
+```kotlin
+maven { url = uri("https://jitpack.io") }
 ```
 Then add this line to your build.gradle:
-```
-implementation 'com.github.ItsBenyaamin:rakhsh:v1.0'
+```kotlin
+implementation("com.github.ItsBenyaamin:rakhsh:v1.0")
 ```
 
 # Usage
 It's very simple
-```
+```kotlin
 // for default settings
 downloadManager = Rakhsh.build(context)
 
@@ -43,7 +43,7 @@ downloadManager = Rakhsh.build(context) {
 }
 ```
 For enqueue a url for download:
-```
+```kotlin
 viewModelScope.launch {
     val id = downloadManager.enqueue(url, path, tag)
 
@@ -62,6 +62,6 @@ For more advanced usage, check out the sample app
 
 ## Requirements
 As we download from internet, don't forget to add internet permission to Manifest of your app:
-```
+```xml
 <uses-permission android:name="android.permission.INTERNET"/>
 ```
