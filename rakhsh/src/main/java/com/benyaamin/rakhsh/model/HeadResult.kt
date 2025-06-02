@@ -1,11 +1,7 @@
 package com.benyaamin.rakhsh.model
 
-data class HeadResult(
-    val success: HeadResultSuccess?,
-    val error: String?,
-)
-
-data class HeadResultSuccess(
-    val totalBytes: Long,
-    val canResume: Boolean,
-)
+sealed class HeadResult {
+    data class Success(val totalBytes: Long, val canResume: Boolean) : HeadResult()
+    data class HttpError(val statusCode: Int) : HeadResult()
+    data class Failure(val exception: Exception) : HeadResult()
+}

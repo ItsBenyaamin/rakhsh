@@ -5,8 +5,10 @@ import com.benyaamin.rakhsh.client.RakhshClient
 import com.benyaamin.rakhsh.model.ChunkDownloadResult
 import com.benyaamin.rakhsh.model.DownloadItem
 import com.benyaamin.rakhsh.model.DownloadStatus
+import com.benyaamin.rakhsh.model.HeadResult
 import com.benyaamin.rakhsh.util.Logger
 import com.benyaamin.rakhsh.util.calculatePercentage
+import com.benyaamin.rakhsh.util.mapToErrorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -111,34 +113,40 @@ class RakhshDownloader(
 
     private fun checkAcceptRanges(shouldStartDownload: Boolean) {
         pool.execute {
-            val result = client.headRequest(url)
-
-            if (result.success != null) {
-                item = item.copy(
-                    totalBytes = result.success.totalBytes,
-                    canResume = result.success.canResume
-                )
-
-                mainHandler.post {
-                    listener.onUpdateInfo(
-                        item.id,
-                        totalBytes = result.success.totalBytes,
-                        canResume = result.success.canResume
+            when(val result = client.headRequest(url)) {
+                is HeadResult.Success -> {
+                    item = item.copy(
+                        totalBytes = result.totalBytes,
+                        canResume = result.canResume
                     )
-                }
 
-                if (result.success.canResume) {
-                    queue = ChunkQueue(result.success.totalBytes, chunkSize, item.ranges)
-                    queue!!.calculateRanges()
-                }
-
-                if (shouldStartDownload) {
                     mainHandler.post {
-                        startDownload(result.success.canResume, result.success.totalBytes)
+                        listener.onUpdateInfo(
+                            item.id,
+                            totalBytes = result.totalBytes,
+                            canResume = result.canResume
+                        )
+                    }
+
+                    if (result.canResume) {
+                        queue = ChunkQueue(result.totalBytes, chunkSize, item.ranges)
+                        queue!!.calculateRanges()
+                    }
+
+                    if (shouldStartDownload) {
+                        mainHandler.post {
+                            startDownload(result.canResume, result.totalBytes)
+                        }
                     }
                 }
-            }else {
-                updateItemStatus(DownloadStatus.Error, "Failed to get download info")
+
+                is HeadResult.HttpError -> {
+                    updateItemStatus(DownloadStatus.Error, result.statusCode.mapToErrorType())
+                }
+
+                is HeadResult.Failure -> {
+                    updateItemStatus(DownloadStatus.Error, result.exception.mapToErrorType())
+                }
             }
         }
     }
@@ -193,7 +201,7 @@ class RakhshDownloader(
                     updateItemStatus(DownloadStatus.Completed)
                 },
                 onError = { msg ->
-                    updateItemStatus(DownloadStatus.Error, msg.message ?: "failed to download.")
+                    updateItemStatus(DownloadStatus.Error, msg.mapToErrorType())
                 }
             )
         }
@@ -261,7 +269,7 @@ class RakhshDownloader(
                         "Download failed"
                     }
                     mainHandler.post {
-                        updateItemStatus(DownloadStatus.Error, "Download Failed.")
+                        updateItemStatus(DownloadStatus.Error, failedChunks.first().error?.mapToErrorType())
                     }
                 } else {
                     logger.info("There is some failed chunks, downloading them again...")
