@@ -9,5 +9,5 @@ interface DownloadStateInterface {
     fun onUpdateInfo(downloadId: Int, totalBytes: Long, canResume: Boolean)
     fun onStatusChanged(downloadId: Int, status: DownloadStatus, error: ErrorType?)
     fun onUpdateRanges(downloadId: Int, bitset: BitSet, totalRead: Long)
-    fun onProgressChanged(downloadId: Int, tag: String?, totalBytes: Long, totalRead: Long, progress: Int)
+    fun onProgressChanged(downloadId: Int, tag: String?, group: String?, totalBytes: Long, totalRead: Long, progress: Int)
 }

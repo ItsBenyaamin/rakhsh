@@ -112,7 +112,7 @@ class RakhshDownloadManager(
      * @param path You can pass a folder as path, in this case, the fileName from url will used. if you don't pass path, Context.filesDir will use as folder.
      * @param tag With setting tag, you can use it instead of download id.
      */
-    suspend fun enqueue(url: String, path: String? = null, tag: String? = null): Int {
+    suspend fun enqueue(url: String, path: String? = null, tag: String? = null, group: String? = null): Int {
         var tempPath = ""
         if (path != null) {
             tempPath = path
@@ -121,7 +121,7 @@ class RakhshDownloadManager(
         }
 
         val fileName = URL(url).getFilenameFromUrl() ?: ""
-        val item = createDownloadItem(url, tempPath, fileName, tag).toEntity()
+        val item = createDownloadItem(url, tempPath, fileName, tag, group).toEntity()
         val id = database.downloadDao().insertRequest(item)
 
         val metadata = DownloadMetadataEntity(id.toInt(), false, 0, 0, null)
@@ -388,11 +388,12 @@ class RakhshDownloadManager(
     override fun onProgressChanged(
         downloadId: Int,
         tag: String?,
+        group: String?,
         totalBytes: Long,
         totalRead: Long,
         progress: Int
     ) {
-        val info = DownloadProgress(downloadId, tag, totalRead, totalRead, progress)
+        val info = DownloadProgress(downloadId, tag, group, totalRead, totalRead, progress)
         logger.info(info.toString())
         _progressFlow.tryEmit(info)
     }
