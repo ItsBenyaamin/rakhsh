@@ -3,7 +3,7 @@ package com.benyaamin.rakhsh.util
 import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.model.DownloadItem
 
-fun createDownloadItem(url: String, path: String, fileName: String, tag: String?): DownloadItem {
+fun createDownloadItem(url: String, path: String, fileName: String, tag: String?, group: String?): DownloadItem {
     return DownloadItem(
         id = 0,
         url = url,
@@ -15,6 +15,7 @@ fun createDownloadItem(url: String, path: String, fileName: String, tag: String?
         totalRead = 0,
         ranges = null,
         status = DownloadStatus.NotStarted,
+        group = group,
         error = null,
     )
 }

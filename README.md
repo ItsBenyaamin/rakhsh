@@ -45,7 +45,7 @@ downloadManager = Rakhsh.build(context) {
 For enqueue a url for download:
 ```kotlin
 viewModelScope.launch {
-    val id = downloadManager.enqueue(url, path, tag)
+    val id = downloadManager.enqueue(url, path, tag, group)
 
     // you can call `prepare` on enqueue. This fetches file info from url and store it
     // this only fetches the info and not start the downlad process

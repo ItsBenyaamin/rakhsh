@@ -97,6 +97,30 @@ class RakhshDownloadManager(
     }
 
     /**
+     * returns a flow that contains all downloads from a specific group that enqueued based on order.
+     * it refreshes on each change on library's database.
+     */
+    fun getGroupDownloadListFlow(group: String, asc: Boolean = true): Flow<List<Download>> {
+        val flow = if (asc) {
+            database.downloadDao().getListOfGroupDownloadsAscFlow(group)
+        } else {
+            database.downloadDao().getListOfGroupDownloadsDescFlow(group)
+        }
+
+        return flow.map { list ->
+            list.map { entity ->
+                val progressFlow = observeProgress(entity.id)
+                entity.toDownload(progressFlow)
+            }
+        }.onEach {
+            logger.debug {
+                val type = if (asc) "(Asc)" else "(Desc)"
+                "groupDownloadList $type returned ${it.size} item"
+            }
+        }
+    }
+
+    /**
      * returns a flow for a specific download item based on id returned at enqueue
      */
     fun observeProgress(id: Int) = _progressFlow.filter { it.id == id }
@@ -107,12 +131,17 @@ class RakhshDownloadManager(
     fun observeProgress(tag: String) = _progressFlow.filter { it.tag == tag }
 
     /**
+     * returns a flow for a specific group of items
+     */
+    fun observeGroupProgress(group: String) = _progressFlow.filter { it.group == group }
+
+    /**
      * create download request with given info and return created `id`.
      * @param url full url of file you want to download.
      * @param path You can pass a folder as path, in this case, the fileName from url will used. if you don't pass path, Context.filesDir will use as folder.
      * @param tag With setting tag, you can use it instead of download id.
      */
-    suspend fun enqueue(url: String, path: String? = null, tag: String? = null): Int {
+    suspend fun enqueue(url: String, path: String? = null, tag: String? = null, group: String? = null): Int {
         var tempPath = ""
         if (path != null) {
             tempPath = path
@@ -121,7 +150,7 @@ class RakhshDownloadManager(
         }
 
         val fileName = URL(url).getFilenameFromUrl() ?: ""
-        val item = createDownloadItem(url, tempPath, fileName, tag).toEntity()
+        val item = createDownloadItem(url, tempPath, fileName, tag, group).toEntity()
         val id = database.downloadDao().insertRequest(item)
 
         val metadata = DownloadMetadataEntity(id.toInt(), false, 0, 0, null)
@@ -388,11 +417,12 @@ class RakhshDownloadManager(
     override fun onProgressChanged(
         downloadId: Int,
         tag: String?,
+        group: String?,
         totalBytes: Long,
         totalRead: Long,
         progress: Int
     ) {
-        val info = DownloadProgress(downloadId, tag, totalRead, totalRead, progress)
+        val info = DownloadProgress(downloadId, tag, group, totalRead, totalRead, progress)
         logger.info(info.toString())
         _progressFlow.tryEmit(info)
     }

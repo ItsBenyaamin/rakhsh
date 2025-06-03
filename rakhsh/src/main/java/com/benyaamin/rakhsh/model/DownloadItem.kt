@@ -13,6 +13,7 @@ data class DownloadItem(
     val totalRead: Long,
     val ranges: BitSet?,
     val status: DownloadStatus,
+    val group: String?,
     val error: ErrorType?,
 ) {
 

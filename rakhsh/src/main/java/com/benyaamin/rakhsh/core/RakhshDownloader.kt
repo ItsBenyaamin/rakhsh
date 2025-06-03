@@ -103,7 +103,7 @@ class RakhshDownloader(
         lastPercentage.set(percentage)
 
         logger.debug { "dispatch last progress" }
-        listener.onProgressChanged(item.id, item.tag, item.totalBytes, item.totalRead, percentage)
+        listener.onProgressChanged(item.id, item.tag, item.group, item.totalBytes, item.totalRead, percentage)
 
         logger.debug { "start download" }
         startDownload(item.canResume, item.totalBytes)
@@ -190,7 +190,7 @@ class RakhshDownloader(
                         if ((percentage - lastPercentage.get()) >= 2) {
                             lastPercentage.set(percentage)
                             mainHandler.post {
-                                listener.onProgressChanged(item.id, item.tag, item.totalBytes, totalRead.get(), percentage)
+                                listener.onProgressChanged(item.id, item.tag, item.group, item.totalBytes, totalRead.get(), percentage)
                             }
                         }
                     }
@@ -337,7 +337,7 @@ class RakhshDownloader(
                     if ((percentage - lastPercentage.get()) >= 2) {
                         lastPercentage.set(percentage)
                         mainHandler.post {
-                            listener.onProgressChanged(item.id, item.tag, item.totalBytes, totalRead.get(), percentage)
+                            listener.onProgressChanged(item.id, item.tag, item.group, item.totalBytes, totalRead.get(), percentage)
                         }
                     }
 

@@ -24,6 +24,7 @@ fun FullDownloadItem.toDownloadItem(): DownloadItem {
         totalRead = metadata.totalRead,
         ranges = metadata.ranges,
         status = DownloadStatus.valueOf(downloadEntity.status),
+        group = downloadEntity.group,
         error = error
     )
 }
@@ -35,6 +36,7 @@ fun SimpleDownloadEntity.toDownload(progressFlow: Flow<DownloadProgress>): Downl
         id = id,
         fileName = fileName,
         status = DownloadStatus.valueOf(status),
+        group = group,
         error = error,
         progressFlow = progressFlow
     )
@@ -48,6 +50,7 @@ fun DownloadItem.toEntity(): DownloadEntity {
         fileName = fileName,
         tag = tag,
         status = DownloadStatus.NotStarted.name,
+        group = group,
         error = null,
     )
 }

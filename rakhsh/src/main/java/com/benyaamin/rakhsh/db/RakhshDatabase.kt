@@ -9,13 +9,14 @@ import com.benyaamin.rakhsh.db.entity.DownloadMetadataEntity
 import com.benyaamin.rakhsh.db.util.BitSetTypeConverter
 
 @Database(
-    version = 2,
+    version = 3,
     entities = [
         DownloadEntity::class,
         DownloadMetadataEntity::class,
     ],
     autoMigrations = [
-        AutoMigration(1, 2)
+        AutoMigration(1, 2),
+        AutoMigration(2, 3),
     ]
 )
 @TypeConverters(BitSetTypeConverter::class)
