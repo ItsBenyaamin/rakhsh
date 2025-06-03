@@ -97,6 +97,30 @@ class RakhshDownloadManager(
     }
 
     /**
+     * returns a flow that contains all downloads from a specific group that enqueued based on order.
+     * it refreshes on each change on library's database.
+     */
+    fun getGroupDownloadListFlow(group: String, asc: Boolean = true): Flow<List<Download>> {
+        val flow = if (asc) {
+            database.downloadDao().getListOfGroupDownloadsAscFlow(group)
+        } else {
+            database.downloadDao().getListOfGroupDownloadsDescFlow(group)
+        }
+
+        return flow.map { list ->
+            list.map { entity ->
+                val progressFlow = observeProgress(entity.id)
+                entity.toDownload(progressFlow)
+            }
+        }.onEach {
+            logger.debug {
+                val type = if (asc) "(Asc)" else "(Desc)"
+                "groupDownloadList $type returned ${it.size} item"
+            }
+        }
+    }
+
+    /**
      * returns a flow for a specific download item based on id returned at enqueue
      */
     fun observeProgress(id: Int) = _progressFlow.filter { it.id == id }

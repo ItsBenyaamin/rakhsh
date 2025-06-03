@@ -17,11 +17,11 @@ interface DownloadDao {
     @Query("select id, fileName, status, error from downloadentity order by id desc")
     fun getListOfDownloadsDescFlow(): Flow<List<SimpleDownloadEntity>>
 
-    @Query("select * from downloadentity order by id asc")
-    suspend fun getListOfDownloadsAsc(): List<DownloadEntity>
+    @Query("select id, fileName, status, `group`, error from downloadentity where `group` = :group order by id asc")
+    fun getListOfGroupDownloadsAscFlow(group: String): Flow<List<SimpleDownloadEntity>>
 
-    @Query("select * from downloadentity order by id desc")
-    suspend fun getListOfDownloadsDesc(): List<DownloadEntity>
+    @Query("select id, fileName, status, `group`, error from downloadentity where `group` = :group order by id desc")
+    fun getListOfGroupDownloadsDescFlow(group: String): Flow<List<SimpleDownloadEntity>>
 
     @Query("select * from downloadentity where tag = :tag")
     suspend fun getDownloadByTag(tag: String): FullDownloadItem?
