@@ -12,5 +12,6 @@ data class DownloadEntity(
     val fileName: String,
     val tag: String?,
     val status: String,
+    val group: String?,
     val error: String?,
 )
