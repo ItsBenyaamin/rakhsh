@@ -107,6 +107,11 @@ class RakhshDownloadManager(
     fun observeProgress(tag: String) = _progressFlow.filter { it.tag == tag }
 
     /**
+     * returns a flow for a specific group of items
+     */
+    fun observeGroupProgress(group: String) = _progressFlow.filter { it.group == group }
+
+    /**
      * create download request with given info and return created `id`.
      * @param url full url of file you want to download.
      * @param path You can pass a folder as path, in this case, the fileName from url will used. if you don't pass path, Context.filesDir will use as folder.
