@@ -6,10 +6,15 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
 class HttpsUrlConnectionClient : RakhshClient {
-    override fun headRequest(url: URL): HeadResult {
+    override fun headRequest(url: URL, headers: List<Pair<String, String>>): HeadResult {
         try {
             val connection = url.openConnection() as HttpsURLConnection
             connection.requestMethod = "HEAD"
+
+            headers.forEach {
+                connection.setRequestProperty(it.first, it.second)
+            }
+
             connection.connect()
 
             val statusCode = connection.responseCode
@@ -41,13 +46,19 @@ class HttpsUrlConnectionClient : RakhshClient {
         }
     }
 
-    override fun createInputStream(url: URL, range: LongRange?, readBlock: (InputStream) -> Unit, onError: (Exception) -> Unit) {
+    override fun createInputStream(url: URL, headers: List<Pair<String, String>>, range: LongRange?, readBlock: (InputStream) -> Unit, onError: (Exception) -> Unit) {
         try {
             val connection = url.openConnection() as HttpsURLConnection
             connection.requestMethod = "GET"
+
+            headers.forEach {
+                connection.setRequestProperty(it.first, it.second)
+            }
+
             range?.let {
                 connection.setRequestProperty("Range", "bytes=${range.start}-${range.last}")
             }
+
             connection.connect()
             val inputStream = connection.getInputStream()
             readBlock(inputStream)

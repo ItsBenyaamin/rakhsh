@@ -120,7 +120,7 @@ class RakhshDownloader(
 
     private fun checkAcceptRanges(shouldStartDownload: Boolean) {
         pool.execute {
-            when(val result = client.headRequest(url)) {
+            when(val result = client.headRequest(url, item.headers)) {
                 is HeadResult.Success -> {
                     item = item.copy(
                         totalBytes = result.totalBytes,
@@ -171,6 +171,7 @@ class RakhshDownloader(
             val outputStream = file.outputStream()
             client.createInputStream(
                 url,
+                item.headers,
                 null,
                 readBlock = { inputStream ->
                     val buffer = ByteArray(chunkSize)
@@ -300,6 +301,7 @@ class RakhshDownloader(
 
             client.createInputStream(
                 url,
+                item.headers,
                 range = range.value,
                 readBlock = { inputStream ->
                     val buffer = ByteArray(chunkSize)
