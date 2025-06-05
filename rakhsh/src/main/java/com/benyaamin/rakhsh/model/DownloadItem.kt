@@ -14,6 +14,7 @@ data class DownloadItem(
     val ranges: BitSet?,
     val status: DownloadStatus,
     val group: String?,
+    val headers: List<Pair<String, String>>,
     val error: ErrorType?,
 ) {
 
