@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.benyaamin.rakhsh.db.entity.DownloadEntity
+import com.benyaamin.rakhsh.db.entity.DownloadHeaders
 import com.benyaamin.rakhsh.db.entity.DownloadMetadataEntity
 import com.benyaamin.rakhsh.db.projection.SimpleDownloadEntity
 import kotlinx.coroutines.flow.Flow
@@ -44,6 +45,10 @@ interface DownloadDao {
     @Query("delete from downloadentity where id = :id")
     suspend fun deleteRequest(id: Int)
 
+
+    /**
+     * Metadata
+     */
     @Insert
     suspend fun insertMetadata(metadata: DownloadMetadataEntity)
 
@@ -55,4 +60,13 @@ interface DownloadDao {
 
     @Query("delete from downloadmetadataentity where itemId = :id")
     suspend fun deleteRequestMetadata(id: Int)
+
+    /**
+     * Headers
+     */
+    @Insert
+    suspend fun insertHeaders(list: List<DownloadHeaders>)
+
+    @Query("delete from downloadheaders where itemId = :id")
+    suspend fun deleteDownloadHeaders(id: Int)
 }
