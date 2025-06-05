@@ -56,6 +56,7 @@ import com.benyaamin.rakhsh.app.R
 import com.benyaamin.rakhsh.app.ui.components.CustomIconButton
 import com.benyaamin.rakhsh.model.Download
 import com.benyaamin.rakhsh.model.DownloadProgress
+import com.benyaamin.rakhsh.model.ErrorType
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
@@ -170,7 +171,7 @@ fun DownloadItem(item: Download, actionCallback: (ListActions) -> Unit) {
                 }
 
                 val statusText =
-                    if (item.status == DownloadStatus.Error) item.error ?: item.status.name
+                    if (item.status == DownloadStatus.Error) item.error?.error ?: item.status.name
                     else item.status.name
 
                 Text(text = "Status: ")
@@ -335,10 +336,12 @@ fun PreviewDownloadItem() {
             id = 0,
             fileName = "Download item 1 with long name.pdf",
             status = DownloadStatus.Completed,
-            error = "Network error",
-            flowOf(
+            error = ErrorType.Error,
+            group = "",
+            progressFlow = flowOf(
                 DownloadProgress(
                     0,
+                    null,
                     null,
                     0L,
                     0L,
