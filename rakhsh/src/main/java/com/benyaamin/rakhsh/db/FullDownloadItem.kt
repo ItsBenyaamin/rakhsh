@@ -3,6 +3,7 @@ package com.benyaamin.rakhsh.db
 import androidx.room.Embedded
 import androidx.room.Relation
 import com.benyaamin.rakhsh.db.entity.DownloadEntity
+import com.benyaamin.rakhsh.db.entity.DownloadHeaders
 import com.benyaamin.rakhsh.db.entity.DownloadMetadataEntity
 
 data class FullDownloadItem(
@@ -11,5 +12,10 @@ data class FullDownloadItem(
         parentColumn = "id",
         entityColumn = "itemId"
     )
-    val metadata: DownloadMetadataEntity
+    val metadata: DownloadMetadataEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "itemId"
+    )
+    val headers: List<DownloadHeaders>,
 )

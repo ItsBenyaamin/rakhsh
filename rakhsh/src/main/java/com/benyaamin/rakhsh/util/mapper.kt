@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 fun FullDownloadItem.toDownloadItem(): DownloadItem {
     val error = if (downloadEntity.error == null) null
     else ErrorType.valueOf(downloadEntity.error)
+    val mappedHeaders = headers.map { Pair(it.key, it.value) }
     return DownloadItem(
         id = downloadEntity.id,
         url = downloadEntity.url,
@@ -25,6 +26,7 @@ fun FullDownloadItem.toDownloadItem(): DownloadItem {
         ranges = metadata.ranges,
         status = DownloadStatus.valueOf(downloadEntity.status),
         group = downloadEntity.group,
+        headers = mappedHeaders,
         error = error
     )
 }

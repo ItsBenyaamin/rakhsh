@@ -12,10 +12,12 @@ import com.benyaamin.rakhsh.db.entity.DownloadMetadataEntity
 import com.benyaamin.rakhsh.model.Download
 import com.benyaamin.rakhsh.model.DownloadItem
 import com.benyaamin.rakhsh.model.DownloadProgress
+import com.benyaamin.rakhsh.model.DownloadRequest
 import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.model.ErrorType
 import com.benyaamin.rakhsh.model.shouldRemoveFromOngoing
 import com.benyaamin.rakhsh.util.Logger
+import com.benyaamin.rakhsh.util.createDownloadHeader
 import com.benyaamin.rakhsh.util.createDownloadItem
 import com.benyaamin.rakhsh.util.getFilenameFromUrl
 import com.benyaamin.rakhsh.util.toDownload
@@ -136,16 +138,23 @@ class RakhshDownloadManager(
     fun observeGroupProgress(group: String) = _progressFlow.filter { it.group == group }
 
     /**
-     * create download request with given info and return created `id`.
-     * @param url full url of file you want to download.
-     * @param path You can pass a folder as path, in this case, the fileName from url will used. if you don't pass path, Context.filesDir will use as folder.
-     * @param tag With setting tag, you can use it instead of download id.
+     * create download request with given info.
+     * You can pass a folder as path, in this case, the fileName from url will used. if you don't pass path, Context.filesDir will use as folder.
+     * @param url Link of file you want to download.
+     * @param path Destination to create file
+     * @param tag A string identifier to this download request
+     * @return created download item id
      */
-    suspend fun enqueue(url: String, path: String? = null, tag: String? = null, group: String? = null): Int {
+    suspend fun enqueue(
+        url: String,
+        path: String? = null,
+        tag: String? = null,
+        group: String? = null
+    ): Int {
         var tempPath = ""
         if (path != null) {
             tempPath = path
-        }else {
+        } else {
             tempPath = context.filesDir.absolutePath
         }
 
@@ -157,9 +166,23 @@ class RakhshDownloadManager(
         database.downloadDao().insertMetadata(metadata)
 
         logger.debug {
-            "enqueue new download request -> Url: $url, Path: $path, fileName: $fileName, Tag: $tag"
+            "enqueue new download request -> Url: $url, Path: $path, FileName: $fileName, Tag: $tag, Group: $group"
         }
         return id.toInt()
+    }
+
+    /**
+     * create download request in more advanced way.
+     * @param request Request information
+     * @return created download item id
+     */
+    suspend fun enqueue(request: DownloadRequest): Int {
+        val id = enqueue(request.url, request.path, request.tag, request.group)
+
+        val headers = request.headers.map { createDownloadHeader(id, it.first, it.second) }
+        database.downloadDao().insertHeaders(headers)
+
+        return id
     }
 
     suspend fun prepare(id: Int) {
@@ -223,7 +246,7 @@ class RakhshDownloadManager(
 
         if (exists != null) {
             exists.start()
-        }else {
+        } else {
 
             val downloader = RakhshDownloader(
                 mainHandler,
@@ -310,7 +333,7 @@ class RakhshDownloadManager(
             logger.debug {
                 "resume item: ${downloader.item}"
             }
-        }else {
+        } else {
             scope.launch { start(id) }
         }
     }
@@ -327,7 +350,7 @@ class RakhshDownloadManager(
             logger.debug {
                 "resume item: ${downloader.item}"
             }
-        }else {
+        } else {
             scope.launch { start(tag) }
         }
     }
