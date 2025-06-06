@@ -16,6 +16,7 @@ import com.benyaamin.rakhsh.model.DownloadRequest
 import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.model.ErrorType
 import com.benyaamin.rakhsh.model.shouldRemoveFromOngoing
+import com.benyaamin.rakhsh.model.shouldStartAnother
 import com.benyaamin.rakhsh.util.Logger
 import com.benyaamin.rakhsh.util.createDownloadHeader
 import com.benyaamin.rakhsh.util.createDownloadItem
@@ -58,6 +59,9 @@ class RakhshDownloadManager(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     val progressFlow = _progressFlow.asSharedFlow()
+
+    var downloadingWithOrder = false
+        private set
 
     init {
         logger.debug { "RakhshDownloadManager initialized" }
@@ -247,7 +251,6 @@ class RakhshDownloadManager(
         if (exists != null) {
             exists.start()
         } else {
-
             val downloader = RakhshDownloader(
                 mainHandler,
                 scope,
@@ -384,6 +387,55 @@ class RakhshDownloadManager(
         }
     }
 
+    /**
+     * start downloading all of un-completed items orderly
+     */
+    suspend fun startDownloadOrderly(asc: Boolean = false) {
+        val list = if (asc) {
+            database.downloadDao().getDownloadsListAsc()
+        } else {
+            database.downloadDao().getDownloadsListDesc()
+        }
+
+        if (list.isEmpty()) {
+            logger.debug { "There is no item to download" }
+            return
+        }
+
+        list.map { it.toDownloadItem() }
+            .forEachIndexed { index, dl ->
+                val existingDownloader = ongoingDownloadsList.find { it.item.id == dl.id }
+                if (existingDownloader == null) {
+                    val downloader = RakhshDownloader(
+                        mainHandler,
+                        scope,
+                        this,
+                        logger,
+                        connectionCount,
+                        chunkSize,
+                        client,
+                    )
+                    downloader.setItem(dl)
+                    ongoingDownloadsList.add(index, downloader)
+                } else {
+                    val mIndex = ongoingDownloadsList.indexOf(existingDownloader)
+                    ongoingDownloadsList.removeAt(mIndex)
+                    ongoingDownloadsList.add(index, existingDownloader)
+                }
+            }
+        downloadingWithOrder = true
+        ongoingDownloadsList.first().start()
+    }
+
+    fun stopDownloadOrderly() {
+        downloadingWithOrder = false
+        ongoingDownloadsList.forEach {
+            if (it.item.status == DownloadStatus.Downloading) {
+                it.stop()
+            }
+        }
+    }
+
 
     /**
      * downloading item events
@@ -411,23 +463,34 @@ class RakhshDownloadManager(
         }
     }
 
-    override fun onStatusChanged(downloadId: Int, stataus: DownloadStatus, error: ErrorType?) {
-        if (stataus == DownloadStatus.Error) {
-            logger.error("Download - id: $downloadId, status: ${stataus.name}, error: ${error?.name}, cause: ${error?.error}")
+    override fun onStatusChanged(downloadId: Int, status: DownloadStatus, error: ErrorType?) {
+        if (status == DownloadStatus.Error) {
+            logger.error("Download - id: $downloadId, status: ${status.name}, error: ${error?.name}, cause: ${error?.error}")
         } else {
-            logger.info("Download - id: $downloadId, status: ${stataus.name}")
+            logger.info("Download - id: $downloadId, status: ${status.name}")
         }
 
-        if (stataus.shouldRemoveFromOngoing()) {
+        if (status.shouldRemoveFromOngoing()) {
             ongoingDownloadsList.removeIf { it.item.id == downloadId }
+        }else if (downloadingWithOrder) {
+            // move item to the end of list
+            ongoingDownloadsList.find { it.item.id == downloadId}?.let { item ->
+                val itemIndex = ongoingDownloadsList.indexOf(item)
+                ongoingDownloadsList.removeAt(itemIndex)
+                ongoingDownloadsList.add(item)
+            }
         }
 
         scope.launch {
             database.downloadDao().updateDownloadState(
                 downloadId = downloadId,
-                stataus.name,
+                status.name,
                 error?.name,
             )
+        }
+
+        if (downloadingWithOrder && status.shouldStartAnother()) {
+            ongoingDownloadsList.first().start()
         }
     }
 
