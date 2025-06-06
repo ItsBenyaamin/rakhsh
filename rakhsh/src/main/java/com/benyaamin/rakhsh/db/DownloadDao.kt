@@ -3,6 +3,7 @@ package com.benyaamin.rakhsh.db
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import com.benyaamin.rakhsh.db.entity.DownloadEntity
 import com.benyaamin.rakhsh.db.entity.DownloadHeaders
 import com.benyaamin.rakhsh.db.entity.DownloadMetadataEntity
@@ -24,15 +25,19 @@ interface DownloadDao {
     @Query("select id, fileName, status, `group`, error from downloadentity where `group` = :group order by id desc")
     fun getListOfGroupDownloadsDescFlow(group: String): Flow<List<SimpleDownloadEntity>>
 
+    @Transaction
     @Query("select * from downloadentity order by id asc")
     suspend fun getDownloadsListAsc(): List<FullDownloadItem>
 
+    @Transaction
     @Query("select * from downloadentity order by id desc")
     suspend fun getDownloadsListDesc(): List<FullDownloadItem>
 
+    @Transaction
     @Query("select * from downloadentity where tag = :tag")
     suspend fun getDownloadByTag(tag: String): FullDownloadItem?
 
+    @Transaction
     @Query("select * from downloadentity where id = :id")
     suspend fun getDownloadById(id: Int): FullDownloadItem?
 
