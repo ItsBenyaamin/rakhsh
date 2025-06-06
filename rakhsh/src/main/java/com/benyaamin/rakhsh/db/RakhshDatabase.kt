@@ -10,7 +10,7 @@ import com.benyaamin.rakhsh.db.entity.DownloadMetadataEntity
 import com.benyaamin.rakhsh.db.util.BitSetTypeConverter
 
 @Database(
-    version = 4,
+    version = 5,
     entities = [
         DownloadEntity::class,
         DownloadMetadataEntity::class,
@@ -20,6 +20,7 @@ import com.benyaamin.rakhsh.db.util.BitSetTypeConverter
         AutoMigration(1, 2),
         AutoMigration(2, 3),
         AutoMigration(3, 4),
+        AutoMigration(4, 5),
     ]
 )
 @TypeConverters(BitSetTypeConverter::class)
