@@ -19,6 +19,7 @@ import java.util.concurrent.Callable
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
@@ -40,10 +41,8 @@ class RakhshDownloader(
     private val lastPercentage = AtomicInteger(0)
     private var queue: ChunkQueue? = null
 
-    @Volatile
-    private var isStopped = false
-    @Volatile
-    private var isPaused = false
+    private var isStopped = AtomicBoolean(false)
+    private var isPaused = AtomicBoolean(false)
 
     fun setItem(item: DownloadItem) {
         this.item = item
@@ -77,17 +76,17 @@ class RakhshDownloader(
 
     fun stop() {
         logger.debug { "setting isStopped to true" }
-        isStopped = true
+        isStopped.set(true)
     }
 
     fun pause() {
         logger.debug { "setting isPaused to true" }
-        isPaused = true
+        isPaused.set(true)
     }
 
     fun resume() {
         logger.debug { "resuming the download" }
-        isPaused = false
+        isPaused.set(false)
 
         logger.debug { "update status to downloading" }
         updateItemStatus(DownloadStatus.Downloading)
@@ -176,7 +175,7 @@ class RakhshDownloader(
                 readBlock = { inputStream ->
                     val buffer = ByteArray(chunkSize)
 
-                    while (!isPaused && !isStopped) {
+                    while (!isPaused.get() && !isStopped.get()) {
                         val read = inputStream.read(buffer)
                         if (read == -1) break
 
@@ -196,13 +195,13 @@ class RakhshDownloader(
                         }
                     }
 
-                    if (isStopped) {
+                    if (isStopped.get()) {
                         clearOnStop()
                         updateItemStatus(DownloadStatus.Stopped)
                         return@createInputStream
                     }
 
-                    if (isPaused) {
+                    if (isPaused.get()) {
                         updateItemStatus(DownloadStatus.Paused)
                         return@createInputStream
                     }
@@ -247,7 +246,7 @@ class RakhshDownloader(
                 }
             }
 
-            if (isStopped) {
+            if (isStopped.get()) {
                 logger.info("Download Stopped.")
                 clearOnStop()
                 mainHandler.post {
@@ -256,7 +255,7 @@ class RakhshDownloader(
                 return@launch
             }
 
-            if (isPaused) {
+            if (isPaused.get()) {
                 logger.info("Download paused.")
                 mainHandler.post {
                     updateItemStatus(DownloadStatus.Paused)
@@ -295,7 +294,7 @@ class RakhshDownloader(
         override fun call(): ChunkDownloadResult? {
             // check for stop/pause on thread startup this needed because threads
             // are queued to run and could be stopped/paused before start
-            if (isStopped || isPaused) throw CancellationException()
+            if (isStopped.get() || isPaused.get()) throw CancellationException()
 
             var result = ChunkDownloadResult(range)
 
@@ -309,7 +308,7 @@ class RakhshDownloader(
                     raf.seek(range.value.start)
                     var localTotalRead = 0L
 
-                    while (!isPaused && !isStopped) {
+                    while (!isPaused.get() && !isStopped.get()) {
                         val read = inputStream.read(buffer)
                         if (read == -1) break
 
@@ -318,13 +317,13 @@ class RakhshDownloader(
                     }
                     raf.close()
 
-                    if (isStopped) {
+                    if (isStopped.get()) {
                         logger.debug { "Download is stopped, end the download chunk" }
                         result = result.copy(error = InterruptedException("stopped"))
                         return@createInputStream
                     }
 
-                    if (isPaused) {
+                    if (isPaused.get()) {
                         logger.debug { "Download is paused, end the download chunk" }
                         result = result.copy(error = InterruptedException("paused"))
                         return@createInputStream
