@@ -13,10 +13,10 @@ import java.util.BitSet
 
 @Dao
 interface DownloadDao {
-    @Query("select id, fileName, status, error from downloadentity order by id asc")
+    @Query("select id, fileName, status, `group`, error from downloadentity order by id asc")
     fun getListOfDownloadsAscFlow(): Flow<List<SimpleDownloadEntity>>
 
-    @Query("select id, fileName, status, error from downloadentity order by id desc")
+    @Query("select id, fileName, status, `group`, error from downloadentity order by id desc")
     fun getListOfDownloadsDescFlow(): Flow<List<SimpleDownloadEntity>>
 
     @Query("select id, fileName, status, `group`, error from downloadentity where `group` = :group order by id asc")
