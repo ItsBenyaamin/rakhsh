@@ -13,6 +13,7 @@ import com.benyaamin.rakhsh.model.Download
 import com.benyaamin.rakhsh.model.DownloadItem
 import com.benyaamin.rakhsh.model.DownloadProgress
 import com.benyaamin.rakhsh.model.DownloadRequest
+import com.benyaamin.rakhsh.model.DownloadState
 import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.model.ErrorType
 import com.benyaamin.rakhsh.model.shouldRemoveFromOngoing
@@ -53,12 +54,20 @@ class RakhshDownloadManager(
     ).build()
     private val logger = Logger(debug, mTag)
     private val ongoingDownloadsList = arrayListOf<RakhshDownloader>()
+
     private val _progressFlow = MutableSharedFlow<DownloadProgress>(
         replay = 1,
         extraBufferCapacity = 64,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     val progressFlow = _progressFlow.asSharedFlow()
+
+    private val _downloadsStateFlow = MutableSharedFlow<DownloadState>(
+        replay = 0,
+        extraBufferCapacity = 10,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val downloadsStateFlow = _downloadsStateFlow.asSharedFlow()
 
     var downloadingWithOrder = false
         private set
@@ -437,6 +446,28 @@ class RakhshDownloadManager(
     }
 
 
+    private fun dispatchLastStateOfDownload(downloadId: Int, status: DownloadStatus) {
+        scope.launch {
+            val item = database
+                .downloadDao()
+                .getDownloadById(downloadId)
+                ?.toDownloadItem() ?: return@launch
+
+            val state = when (status) {
+                DownloadStatus.NotStarted -> null
+                DownloadStatus.Downloading -> DownloadState.Downloading(downloadId, item.tag)
+                DownloadStatus.Paused -> DownloadState.Paused(downloadId, item.tag)
+                DownloadStatus.Stopped -> DownloadState.Stopped(downloadId, item.tag)
+                DownloadStatus.Completed -> DownloadState.Completed(downloadId, item.tag)
+                DownloadStatus.Error -> DownloadState.Error(downloadId, item.tag, item.error!!)
+            }
+
+            state?.let {
+                _downloadsStateFlow.emit(it)
+            }
+        }
+    }
+
     /**
      * downloading item events
      */
@@ -472,9 +503,9 @@ class RakhshDownloadManager(
 
         if (status.shouldRemoveFromOngoing()) {
             ongoingDownloadsList.removeIf { it.item.id == downloadId }
-        }else if (downloadingWithOrder) {
+        } else if (downloadingWithOrder) {
             // move item to the end of list
-            ongoingDownloadsList.find { it.item.id == downloadId}?.let { item ->
+            ongoingDownloadsList.find { it.item.id == downloadId }?.let { item ->
                 val itemIndex = ongoingDownloadsList.indexOf(item)
                 ongoingDownloadsList.removeAt(itemIndex)
                 ongoingDownloadsList.add(item)
@@ -488,6 +519,8 @@ class RakhshDownloadManager(
                 error?.name,
             )
         }
+
+        dispatchLastStateOfDownload(downloadId, status)
 
         if (downloadingWithOrder && status.shouldStartAnother()) {
             ongoingDownloadsList.first().start()
