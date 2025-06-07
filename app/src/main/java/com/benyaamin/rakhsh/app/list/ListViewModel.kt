@@ -1,12 +1,14 @@
 package com.benyaamin.rakhsh.app.list
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.benyaamin.rakhsh.model.DownloadStatus
 import com.benyaamin.rakhsh.Rakhsh
 import com.benyaamin.rakhsh.RakhshDownloadManager
 import com.benyaamin.rakhsh.model.Download
+import com.benyaamin.rakhsh.model.DownloadState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -24,6 +26,33 @@ class ListViewModel : ViewModel() {
         }
 
         downloadsList = downloadManager.getDownloadListFlow(asc = false)
+
+
+        viewModelScope.launch {
+            downloadManager.downloadsStateFlow.collect { state ->
+                when(state) {
+                    is DownloadState.Downloading -> {
+                        Log.d("RakhshApp", "Download with Id: ${state.downloadId} is started downloading")
+                    }
+                    is DownloadState.Completed -> {
+                        Log.d("RakhshApp", "Download with Id: ${state.downloadId} is completed")
+                    }
+
+                    is DownloadState.Error -> {
+                        Log.d("RakhshApp", "Download with Id: ${state.downloadId} faced an error." +
+                                " ErrorType: ${state.errType.name}, cause: ${state.errType.error}")
+                    }
+
+                    is DownloadState.Paused -> {
+                        Log.d("RakhshApp", "Download with Id: ${state.downloadId} is paused")
+                    }
+
+                    is DownloadState.Stopped -> {
+                        Log.d("RakhshApp", "Download with Id: ${state.downloadId} is stopped")
+                    }
+                }
+            }
+        }
     }
 
     fun processAction(action: ListActions) {
