@@ -23,7 +23,7 @@ maven { url = uri("https://jitpack.io") }
 ```
 Then add this line to your build.gradle:
 ```kotlin
-implementation("com.github.ItsBenyaamin:rakhsh:v1.0")
+implementation("com.github.ItsBenyaamin:rakhsh:v1.1.0")
 ```
 
 # Usage
