@@ -9,6 +9,9 @@ Rakhsh is a simple and elegant file DownloadManager library for Android written 
 - Manage downloads by id or your choice of tag
 - Provide a flow to get the latest list of downloads
 - Provide a flow to get downloads progress info(overall, specific)
+- Provide a flow to get latest downloads state changes
+- Set group identifier for items
+- Download all items with order(asc, desc)
 - more on the way...
 
 ### Warning:
