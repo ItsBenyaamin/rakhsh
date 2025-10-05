@@ -9,6 +9,7 @@ import com.benyaamin.rakhsh.Rakhsh
 import com.benyaamin.rakhsh.RakhshDownloadManager
 import com.benyaamin.rakhsh.model.Download
 import com.benyaamin.rakhsh.model.DownloadState
+import com.benyaamin.rakhsh.okhttp.OkHttpClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,7 @@ class ListViewModel : ViewModel() {
             setTag("RDM")
             setConnectionNum(4)
             setDownloadChunk(1024 * 1024)
+            setClient(OkHttpClient())
         }
 
         downloadsList = downloadManager.getDownloadListFlow(asc = false)

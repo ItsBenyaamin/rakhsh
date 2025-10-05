@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "rakhsh"
 include(":app")
 include(":rakhsh")
+include(":okhttp")
