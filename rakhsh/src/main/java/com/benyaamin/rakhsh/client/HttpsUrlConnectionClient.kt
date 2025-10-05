@@ -20,7 +20,6 @@ class HttpsUrlConnectionClient : RakhshClient {
             val statusCode = connection.responseCode
             if (statusCode in 200..299) {
                 val acceptRanges = connection.getHeaderField("Accept-Ranges")
-                println("Accept-Ranges: $acceptRanges")
 
                 val doesAcceptRanges = when (acceptRanges?.lowercase()) {
                     "bytes" -> true
